@@ -1,3 +1,8 @@
+What is this?
+=============
+
+This single source file is all the code you will need to create a small Java desktop application to dial any phone number shown on your screen using Aloha.
+
 Build
 =====
 
