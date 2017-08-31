@@ -1,6 +1,8 @@
 What is this?
 =============
 
+*** right now this is Work-In-Progress. The program is a mock-up, instead of dialing it will only display a message box with the phone number it would dial ***
+
 This single source file is all the code you will need to create a small Java desktop application to dial any phone number shown on your screen using Aloha.
 
 Build
