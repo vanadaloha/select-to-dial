@@ -4,7 +4,6 @@
  * Released in the public domain as open source under the Apache license 2.0.
  */
 
-import java.awt.CheckboxMenuItem;
 import java.awt.Color;
 import java.awt.HeadlessException;
 import java.awt.MenuItem;
@@ -16,9 +15,11 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -47,14 +48,48 @@ public class SelectToDial {
      *
      */
     static boolean copyMode = true;
+    /**
+     * The URL to Aloha
+     */
+    static String urlBase = "";
+    static String keyAPI = "";
+
+    static void usage() {
+        JOptionPane.showMessageDialog(null, "Usage: java SelectToDial url-to-Aloha api-key [select]");
+        System.exit(0);
+    }
 
     /**
      * Create the tray icon and set up the menus. Then loop until terminated, waiting for numbers to dial.
      *
-     * @param args Ignored, there are no command line arguments.
+     * @param args There are two required arguments and one optional argument.
+     * <ol>
+     * <li>The URL to your instance of Aloha. This should be something like
+     * 'https://api.REGIONX.vanadaloha.net/v2/telephony/clicktodial'.</li>
+     * <li>The API key of the user. This will look like 'ba4d7f5724419878afc46a04022ed7d869f78c51'.</li>
+     * <li>Optionally the word 'select'. By default, this utility will only pick up items copied to the clipboard. With this
+     * option, any selection that is a valid phone number will pop up the "Dial this number" box. Most users will find this too
+     * intrusive.</li>
+     * </ol>
      */
     public static void main(String[] args) {
-
+        if (args.length > 0) {
+            String u = args[0];
+            if (!u.endsWith("/")) {
+                u += "/";
+            }
+            urlBase = u;
+        } else {
+            usage();
+        }
+        if (args.length > 1) {
+            keyAPI = args[1];
+        } else {
+            usage();
+        }
+        if (args.length > 2) {
+            copyMode = !"select".equalsIgnoreCase(args[2]);
+        }
         try {
             if (!SystemTray.isSupported()) {
                 System.out.println("SystemTray is not supported");
@@ -68,38 +103,13 @@ public class SelectToDial {
             image.getGraphics().drawString("VD", 4, 20);
             final TrayIcon trayIcon = new TrayIcon(image, "SelectToDial", popup);
             final SystemTray tray = SystemTray.getSystemTray();
-            MenuItem config = new MenuItem("Config");
             MenuItem exit = new MenuItem("Exit");
-            final CheckboxMenuItem copyToDial = new CheckboxMenuItem("Copy to dial", copyMode);
-            popup.add(config);
-            popup.add(copyToDial);
             popup.add(exit);
             holder.clipboard = toolkit.getSystemClipboard();
-            config.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    JOptionPane.showMessageDialog(null, "This would be a configuration dialog for API key, user, password");
-                }
-            });
             exit.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     System.exit(0);
-                }
-            });
-            copyToDial.addItemListener(new ItemListener() {
-                @Override
-                public void itemStateChanged(ItemEvent e) {
-                    copyMode = !copyMode;
-                    if (copyMode) {
-                        holder.clipboard = toolkit.getSystemClipboard();
-                        System.out.println("Copy mode");
-                    } else {
-                        holder.clipboard = toolkit.getSystemSelection();
-                        System.out.println("Select mode");
-                    }
-                    copyToDial.setState(copyMode);
-
                 }
             });
             tray.add(trayIcon);
@@ -155,7 +165,27 @@ public class SelectToDial {
             System.out.println("NaN: " + sb.toString());
         }
         if (yes == JOptionPane.YES_OPTION) {
-            JOptionPane.showMessageDialog(null, "Calling URL with number set to " + sb.toString());
+            try {
+                final URL url = new URL(urlBase + sb.toString() + ".json?apikey=" + keyAPI);
+                new Thread() {
+                    @Override
+                    public void run() {
+                        System.out.println(url);
+                        try (InputStream consumer = url.openStream()) {
+                            for (int ch = consumer.read(); ch >= 0; ch = consumer.read()) {
+                                System.out.write(ch);
+                            }
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(null, "Failed to call using Aloha: " + ex.getLocalizedMessage());
+                        }
+                    }
+                }.start();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(null, "Failed to call using Aloha: " + ex.getLocalizedMessage());
+            }
+            // https://api.citest.vanadcimplicity.net/v2/telephony/clicktodial/891235.json?apikey=ab4d7f5724419870afc46a04022ed7d869f78c51&userid=3
+            // https://**URL**/v2/callmenow/**ROUTEPOINTID**/**PHONENUMBER**.json?apikey=**ab4d7f5724419870afc46a04022ed7d869f78c51**&userid=**3**
+            //JOptionPane.showMessageDialog(null, "Calling URL with number set to " + sb.toString());
         }
     }
 
