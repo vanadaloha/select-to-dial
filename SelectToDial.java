@@ -5,6 +5,7 @@
  */
 
 import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.HeadlessException;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
@@ -96,9 +97,12 @@ public class SelectToDial {
             final Toolkit toolkit = Toolkit.getDefaultToolkit();
             final PopupMenu popup = new PopupMenu();
             final BufferedImage image = new BufferedImage(32, 32, BufferedImage.TYPE_INT_RGB);
-            image.getGraphics().clearRect(0, 0, 32, 32);
-            image.getGraphics().setColor(Color.red);
-            image.getGraphics().drawString("VD", 4, 20);
+            {
+                Graphics g = image.getGraphics();
+                g.clearRect(0, 0, 32, 32);
+                g.setColor(Color.red);
+                g.drawString("VD", 4, 17);
+            }
             final TrayIcon trayIcon = new TrayIcon(image, "SelectToDial", popup);
             final SystemTray tray = SystemTray.getSystemTray();
             MenuItem exit = new MenuItem("Exit");
