@@ -16,9 +16,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -105,7 +103,11 @@ public class SelectToDial {
             final SystemTray tray = SystemTray.getSystemTray();
             MenuItem exit = new MenuItem("Exit");
             popup.add(exit);
-            holder.clipboard = toolkit.getSystemClipboard();
+            if (copyMode) {
+                holder.clipboard = toolkit.getSystemClipboard();
+            } else {
+                holder.clipboard = toolkit.getSystemSelection();
+            }
             exit.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -127,7 +129,7 @@ public class SelectToDial {
                     String newClip = (String) holder.clipboard.getData(DataFlavor.stringFlavor);
                     if (!newClip.equals(result)) {
                         result = newClip;
-                        System.out.println("String from Clipboard: [" + result + ']');
+                        //System.out.println("String from Clipboard: [" + result + ']');
                         showDial(result);
                     }
                 } catch (Exception ignore) {
@@ -140,7 +142,8 @@ public class SelectToDial {
     }
 
     /**
-     * If the latest selection is a valid phone number, ask the user if we should dial it.
+     * If the latest selection is a valid phone number, ask the user if we should dial it. Note that this method is hard-coded to
+     * only accept and/or reformat Dutch phone numbers.
      *
      * @param possiblePhoneNumber The string from the clipboard that might be a phone number.
      * @throws HeadlessException This should not happen, if it does, terminate the program.
@@ -161,8 +164,6 @@ public class SelectToDial {
             yes = JOptionPane.showConfirmDialog(null, "Dial: " + sb.toString());
         } else if (sb.length() == 11 && sb.charAt(0) == '3' && sb.charAt(1) == '1') {
             yes = JOptionPane.showConfirmDialog(null, "Dial: " + sb.toString());
-        } else {
-            System.out.println("NaN: " + sb.toString());
         }
         if (yes == JOptionPane.YES_OPTION) {
             try {
@@ -183,9 +184,6 @@ public class SelectToDial {
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(null, "Failed to call using Aloha: " + ex.getLocalizedMessage());
             }
-            // https://api.citest.vanadcimplicity.net/v2/telephony/clicktodial/891235.json?apikey=ab4d7f5724419870afc46a04022ed7d869f78c51&userid=3
-            // https://**URL**/v2/callmenow/**ROUTEPOINTID**/**PHONENUMBER**.json?apikey=**ab4d7f5724419870afc46a04022ed7d869f78c51**&userid=**3**
-            //JOptionPane.showMessageDialog(null, "Calling URL with number set to " + sb.toString());
         }
     }
 
