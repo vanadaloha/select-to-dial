@@ -16,6 +16,6 @@ Run
 ===
 
 - Get a recent Java runtime. Note that older runtimes might have problems making a HTTPS connection.
-- Execute **java SelectToDial <URL> <APIKEY> [select]** in a directory where SelectToDial.class exists. Obviously you would make a .BAT file or desktop shortcut for this. The URL must be something like **https://api.eu2.vanadcimplicity.net/v2/telephony/clicktodial/**. The APIKEY you obtain for your user from the Aloha administrator in the tab "API key". If you add the single word "select" as the third parameter, it if sufficient to only select a phone number. By default you need to copy the number to the clipboard.
+- Execute **java SelectToDial &lt;URL&gt; &lt;APIKEY&gt; [select]** in a directory where SelectToDial.class exists. Obviously you would make a .BAT file or desktop shortcut for this. The URL must be something like **https://api.eu2.vanadcimplicity.net/v2/telephony/clicktodial/**. The APIKEY you obtain for your user from the Aloha administrator in the tab "API key". If you add the single word "select" as the third parameter, it is sufficient to only select a valid phone number to pop up the dial box. By default you need to copy the number to the clipboard.
 - You will get a "VD" (Vanad Dial) icon in the notification space.
-- Log in your agent and select or copy any Dutch phone number on your screen. You should get a message dialog asking if you want to dial the number.  
+- Log in your agent and select or copy any Dutch phone number on your screen. You should get a message dialog box asking if you want to dial the number, reformatted in international format.  
